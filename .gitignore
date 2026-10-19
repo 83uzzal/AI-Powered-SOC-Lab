@@ -9,3 +9,17 @@ __pycache__/
 *.log
 .DS_Store
 app.py.backup*
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases
+*.sqlite3
+*.db
+
+# Editor and temporary files
+.vscode/
+*.swp
+*.tmp

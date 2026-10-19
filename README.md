@@ -1,52 +1,80 @@
-
 # AI-Powered SOC Lab
 
-A hands-on cybersecurity portfolio project exploring local AI-assisted security alert analysis using Wazuh, Suricata, FastAPI, and Ollama.
+**Local AI-Assisted Security Alert Analysis with Wazuh, Suricata, FastAPI, and Ollama**
+
+An intermediate-level cybersecurity portfolio project demonstrating how a locally hosted Large Language Model (LLM) can assist Security Operations Center (SOC) analysts with initial alert triage, evidence review, and investigation planning.
 
 ## Project Overview
 
-This project explores how a locally hosted Large Language Model (LLM) can assist security analysts with initial alert triage and investigation.
+Security teams often need to review large numbers of alerts before deciding which ones require further investigation.
 
-The FastAPI application sends security alert data to Ollama, which generates a preliminary analysis for human review.
+This project integrates a local AI analysis service into a Wazuh-based security monitoring lab. Selected alerts are sent to a FastAPI application, which communicates with Ollama and the Qwen2.5:1.5B language model to generate a preliminary security assessment.
 
-## Technology Stack
+The objective is to support analyst decision-making while keeping inference local rather than relying on a paid cloud AI API.
 
-- Wazuh — Security Information and Event Management (SIEM)
-- Suricata — Network threat detection
-- Ollama — Local LLM runtime
-- Qwen2.5:1.5B — Lightweight language model
-- FastAPI — AI analysis API
-- Python — Application development
-- Ubuntu 22.04 LTS — Lab environment
+**Important:** AI-generated assessments are advisory and must be validated by a human analyst.
 
 ## Architecture
 
-Suricata Network Alerts
-        |
-        v
-    Wazuh SIEM
-        |
-        v
- Custom Integration
-        |
-        v
-   FastAPI Service
-        |
-        v
- Ollama + Qwen2.5:1.5B
-        |
-        v
- AI-Generated Alert Analysis
+```text
+Suricata Network Alert
+          |
+          v
+     Wazuh SIEM
+          |
+          v
+ Custom Rule 100121
+          |
+          v
+ Custom AI Integration
+          |
+          v
+     FastAPI Service
+          |
+          v
+  Ollama Local Runtime
+          |
+          v
+     Qwen2.5:1.5B
+          |
+          v
+ AI-Generated Analysis
+          |
+          v
+ AI Analysis Log
+          |
+          v
+ Wazuh AI Event Rule 100120
+          |
+          v
+ Wazuh Dashboard
+```
+
+The workflow above represents the configured lab pipeline. The AI analysis is intended to support investigation, not independently confirm that an alert is malicious.
+
+## Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Wazuh 4.14 | Security monitoring, alert management, and SIEM dashboard |
+| Suricata | Network threat detection |
+| Ollama | Local LLM inference |
+| Qwen2.5:1.5B | Lightweight language model for preliminary analysis |
+| FastAPI | REST API for AI-assisted alert analysis |
+| Python | Integration and application logic |
+| Ubuntu 22.04 LTS | Lab operating system |
 
 ## Current Features
 
-- Local AI model integration using Ollama
+- Local LLM integration using Ollama and Qwen2.5:1.5B
 - FastAPI health-check endpoint
-- Security alert analysis endpoint
-- Preliminary alert assessment
+- API endpoint for security alert analysis
+- Wazuh custom integration for selected alerts
+- Preliminary AI-assisted alert triage
 - Evidence-focused analysis instructions
 - Investigation recommendations
-- Local inference without per-request cloud AI API costs
+- AI analysis log integration with Wazuh
+- Local inference without per-request cloud AI API charges
 
 ## API Endpoints
 
@@ -56,58 +84,135 @@ Suricata Network Alerts
 
 Checks API availability and Ollama connectivity.
 
-### Analyze an Alert
+Test:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+### Analyze a Security Alert
 
 `POST /analyze`
 
 Example request:
 
-    {
-      "alert": "Example security alert for analysis"
-    }
+```bash
+curl -X POST http://127.0.0.1:8000/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"alert":"Example security alert for analysis"}'
+```
 
-The API returns the alert and its AI-generated analysis.
+The service sends the alert for local LLM analysis and returns the application's analysis response.
 
-## Setup
+### Interactive API Documentation
 
-### 1. Create a Python virtual environment
+When the API is running, open:
 
-    python3 -m venv venv
-    source venv/bin/activate
+`http://127.0.0.1:8000/docs`
 
-### 2. Install dependencies
+## Lab Setup
 
-    pip install -r requirements.txt
+These steps start the AI API component. A complete integrated deployment also requires a working Wazuh installation, Suricata configuration, and the corresponding Wazuh integration and rules.
 
-### 3. Download the Ollama model
+### Prerequisites
 
-    ollama pull qwen2.5:1.5b
+- Ubuntu 22.04 LTS
+- Python 3
+- Ollama
+- Git
+- Sufficient RAM and CPU resources for local model inference
 
-### 4. Start the API
+### 1. Clone the repository
 
-    uvicorn app:app --host 127.0.0.1 --port 8000
+```bash
+git clone https://github.com/83uzzal/AI-Powered-SOC-Lab.git
+cd AI-Powered-SOC-Lab
+```
 
-### 5. Test the API
+### 2. Create and activate a virtual environment
 
-    curl http://127.0.0.1:8000/health
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-Interactive API documentation: `http://127.0.0.1:8000/docs`
+### 3. Install Python dependencies
 
-## Security Notes
+```bash
+pip install -r requirements.txt
+```
 
-- AI-generated assessments are preliminary and require human validation.
-- Do not expose the API publicly without appropriate security controls.
-- Never commit credentials, private keys, or sensitive security logs.
-- Use sanitized sample alerts when demonstrating the project.
+### 4. Download the local model
 
-## Project Status
+Ensure Ollama is installed and running, then execute:
 
-An educational cybersecurity portfolio project focused on local AI-assisted SOC alert analysis.
+```bash
+ollama pull qwen2.5:1.5b
+ollama list
+```
+
+### 5. Start the FastAPI service
+
+```bash
+uvicorn app:app --host 127.0.0.1 --port 8000
+```
+
+The API will listen on localhost port 8000.
+
+### 6. Verify the service
+
+In another terminal, run:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+You can also open `http://127.0.0.1:8000/docs` to inspect the API.
+
+## Wazuh Integration
+
+The configured lab uses a custom integration to forward selected Wazuh alerts to the local AI API.
+
+- **Rule 100121:** Selects the configured Suricata demonstration alert for AI analysis.
+- **FastAPI:** Receives the alert and requests local LLM analysis.
+- **AI analysis log:** Stores analysis output for the Wazuh integration workflow.
+- **Rule 100120:** Handles the configured AI analysis event for visibility in the Wazuh Dashboard.
+
+Exact behavior depends on the local Wazuh rules and integration configuration. Review those settings before reproducing the complete pipeline on another system.
+
+## Security Considerations
+
+- Keep the API bound to localhost unless remote access is explicitly required and secured.
+- Never commit credentials, API keys, private keys, or sensitive logs.
+- Use sanitized alerts and test data in public demonstrations.
+- Apply appropriate file permissions to integration scripts and analysis logs.
+- Treat model output as untrusted input and validate findings against original telemetry.
+- Do not enable automated containment or response actions without appropriate safeguards and human approval.
+
+## Project Roadmap
+
+Potential future enhancements:
+
+- Structured incident summaries
+- Explicit risk-level classification
+- Evidence extraction and validation
+- Prioritized investigation recommendations
+- Improved AI analysis fields for dashboard searches
+- Analyst feedback and evaluation of AI accuracy
+
+These items should be considered planned enhancements until implemented and tested.
+
+## Limitations
+
+- Small local models can produce inaccurate or incomplete assessments.
+- AI output does not replace investigation, threat intelligence, or analyst judgment.
+- Local inference performance depends on available CPU and memory.
+- The repository provides the AI API component; the complete SOC workflow also depends on separately configured Wazuh and Suricata components.
 
 ## Disclaimer
 
-This project is intended for educational and defensive cybersecurity purposes. AI output may be inaccurate and must not be treated as a definitive security verdict.
+This project is intended for educational and defensive cybersecurity purposes. It is not a substitute for a production SOC, and AI-generated output must not be treated as a definitive security verdict.
 
-# AI-Powered-SOC-Lab
-AI-Powered SOC Lab using Wazuh, Suricata and local Ollama.
+## Author and Repository
 
+**GitHub:** https://github.com/83uzzal/AI-Powered-SOC-Lab

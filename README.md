@@ -1,3 +1,4 @@
+
 # AI-Powered SOC Lab
 
 A hands-on cybersecurity portfolio project exploring local AI-assisted security alert analysis using Wazuh, Suricata, FastAPI, and Ollama.
@@ -106,3 +107,7 @@ An educational cybersecurity portfolio project focused on local AI-assisted SOC 
 ## Disclaimer
 
 This project is intended for educational and defensive cybersecurity purposes. AI output may be inaccurate and must not be treated as a definitive security verdict.
+
+# AI-Powered-SOC-Lab
+AI-Powered SOC Lab using Wazuh, Suricata and local Ollama.
+
